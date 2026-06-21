@@ -1,59 +1,30 @@
-# StateMachineManager – Generic State Machine Engine for NPCs
-# Motor de Estados Genérico para NPCs
+StateMachineManager
+A high-performance state engine for Roblox NPCs. Built to handle 100+ concurrent entities with zero memory leaks and atomic state transitions.
 
-🌐 **English** | **Español**
+API Reference:
 
----
+StateMachineManager.Register(model: Instance, states: table, initialState: string, data: table)
+StateMachineManager.SetState(model: Instance, stateName: string)
+StateMachineManager.Unregister(model: Instance)
 
-## 🇬🇧 English
+Technical Specs:
 
-A free, production‑ready state machine engine for Roblox NPCs.  
-Supports 100+ concurrent NPCs with per‑NPC mutex, rate limiting, and automatic cleanup.
+Concurrency: Per-NPC mutex prevents race conditions during state transitions.
 
-**What it offers:**
-- **Per‑NPC Mutex** – Prevents simultaneous state changes.
-- **Pending State Queue** – If a state change is requested while busy, it's queued.
-- **Rate Limiting** – Limits how many times per second an NPC can change state.
-- **Auto‑Cleanup** – NPCs destroyed in the workspace are automatically unregistered.
-- **Heartbeat Optimization** – The Heartbeat loop stops when no NPCs are registered.
-- **Memory Leak Prevention** – Periodic cleanup of stale timestamps.
+Queuing: Pending state requests are automatically queued when the NPC is busy.
 
-**How to use:**
-1. Place the `ModuleScript` in `ServerScriptService.ServerModules`.
-2. Require it: `local StateMachineManager = require(script.Parent.StateMachineManager)`
-3. Register an NPC: `StateMachineManager.registerNPC(model, states, "idle", {})`
-4. Change its state: `StateMachineManager.setState(model, "attack")`
-5. Unregister when removed: `StateMachineManager.unregisterNPC(model)`
+Rate Limiting: Protects CPU cycles by throttling state-change frequency.
 
-**Links:**
-- **Talent Hub:** [More advanced modules](https://create.roblox.com/talent/creators/5075515911)
-- **Discord:** universogalactico_28974 (UniversoGalactico)
+Lifecycle: Auto-cleanup via Instance.Destroying hook + heartbeat-only processing (no orphan loops).
 
----
+Quick Start:
 
-## 🇪🇸 Español
 
-Un motor de estados gratuito y listo para producción para NPCs en Roblox.  
-Soporta más de 100 NPCs simultáneos con mutex por NPC, rate limiting y limpieza automática.
 
-**Qué ofrece:**
-- **Mutex por NPC** – Evita cambios de estado simultáneos.
-- **Cola de estados pendientes** – Si se solicita un cambio mientras está ocupado, se encola.
-- **Rate Limiting** – Limita cuántas veces por segundo un NPC puede cambiar de estado.
-- **Auto‑limpieza** – Los NPCs destruidos en el workspace se desregistran automáticamente.
-- **Optimización de Heartbeat** – El bucle Heartbeat se detiene cuando no hay NPCs registrados.
-- **Prevención de fugas de memoria** – Limpieza periódica de timestamps obsoletos.
+local states = {
+    idle = { onEnter = function() ... end },
+    attack = { onEnter = function() ... end }
+}
 
-**Cómo usarlo:**
-1. Coloca el `ModuleScript` en `ServerScriptService.ServerModules`.
-2. Requiérelo: `local StateMachineManager = require(script.Parent.StateMachineManager)`
-3. Registra un NPC: `StateMachineManager.registerNPC(model, states, "idle", {})`
-4. Cambia su estado: `StateMachineManager.setState(model, "attack")`
-5. Desregístralo al eliminarlo: `StateMachineManager.unregisterNPC(model)`
-
-**Enlaces:**
-- **Talent Hub:** [Módulos avanzados de pago](https://create.roblox.com/talent/creators/5075515911)
-- **Discord:** universogalactico_28974 (UniversoGalactico)
----
-
-*Made with ❤️ by Universogalactico64*
+StateMachineManager.Register(myNPC, states, "idle", {Target = nil})
+StateMachineManager.SetState(myNPC, "attack")
