@@ -45,7 +45,7 @@ type CompiledState = {
 }
 type States = {[string]: CompiledState}
 type Failure = {Stage: string, Code: string, Detail: any?}
-local StateMachine = {VERSION = "3.0.0-rc.2"}
+local StateMachine = {VERSION = "3.0.0"}
 
 local function plain(value: any): boolean
 	return type(value) == "table" and getmetatable(value) == nil
