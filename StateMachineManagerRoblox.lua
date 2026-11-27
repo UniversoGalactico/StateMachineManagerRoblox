@@ -97,7 +97,8 @@ local function compile(config: any, direct: boolean): (States, string)
 	assert(plain(config.States), "INVALID_STATES")
 	local states: States = {}
 	for name, definition in next, config.States do
-		assert(nameValid(name) and plain(definition), "INVALID_STATE")
+		assert(type(name) == "string" and nameValid(name) and plain(definition), "INVALID_STATE")
+		local stateName: string = name
 		validateOptions(definition, STATE_OPTIONS, "UNKNOWN_STATE_OPTION")
 		for _, field in ipairs({"Update", "Enter", "Exit"}) do
 			assert(definition[field] == nil or type(definition[field]) == "function", "INVALID_CALLBACK")
@@ -106,15 +107,15 @@ local function compile(config: any, direct: boolean): (States, string)
 		if definition.Transitions ~= nil then
 			assert(plain(definition.Transitions), "INVALID_TRANSITIONS")
 			for target, guard in next, definition.Transitions do
-				assert(nameValid(target) and (guard == true or type(guard) == "function"), "INVALID_TRANSITION")
-				edges[target] = guard
+				assert(type(target) == "string" and nameValid(target) and (guard == true or type(guard) == "function"), "INVALID_TRANSITION")
+				edges[target] = guard :: (true | Guard)
 			end
 		end
 		local events: {[string]: string} = {}
 		if definition.Events ~= nil then
 			assert(plain(definition.Events), "INVALID_EVENTS")
 			for event, target in next, definition.Events do
-				assert(nameValid(event) and nameValid(target) and edges[target] ~= nil, "INVALID_EVENT")
+				assert(type(event) == "string" and type(target) == "string" and nameValid(event) and nameValid(target) and edges[target] ~= nil, "INVALID_EVENT")
 				events[event] = target
 			end
 		end
@@ -133,7 +134,7 @@ local function compile(config: any, direct: boolean): (States, string)
 			After=after, Update=definition.Update, Enter=definition.Enter, Exit=definition.Exit,
 		}
 		table.freeze(state)
-		states[name] = state
+		states[stateName] = state
 	end
 	assert(nameValid(config.Initial) and states[config.Initial], "INVALID_INITIAL_STATE")
 	for _, state in pairs(states) do

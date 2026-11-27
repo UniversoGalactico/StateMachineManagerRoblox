@@ -10,7 +10,7 @@
 
 ## Adversarial numerical audit
 
-`python3 tests/luauproof_attack.py --luauproof /path/to/luauproof --seed 32031 --out audit.json` (repeat seed 32032). Requires the external pinned LuauProof 3.20 grammar, operand generator, rational binary64 oracle and Luau CLI. The external toolkit is not distributed or required by this library. The script verifies relevant tool hashes. [Evidence](../tests/evidence/rc2/) includes two final campaigns and the pre-fix campaign. This is finite testing, not formal verification.
+`python3 tests/luauproof_attack.py --luauproof /path/to/luauproof --seed 32031 --out audit.json` (repeat seed 32032). Requires the external pinned LuauProof 3.20 grammar, operand generator, rational binary64 oracle and Luau CLI. The external toolkit is not distributed or required by this library. The script verifies relevant tool hashes. [Evidence](../tests/evidence/rc2/) includes two final campaigns and the pre-fix campaign. To reconstruct the exact earlier source, apply pre_fix_source.diff to a copy of the final module and verify the recorded SHA-256. This is finite testing, not formal verification.
 
 The corrected pre-fix campaign found two zero-time clock discrepancies per optimization: compensated addition could advance elapsed on `Step(0)` after a rounding residual. The minimized witness is `Step(0.000009)`, `Step(0.00002)`, then `Step(0)`. The fix bypasses arithmetic for zero steps while still executing Update/timer logic. An earlier harness error (extra return value from string.unpack in a generated list) was fixed before the matched pre-fix comparison.
 

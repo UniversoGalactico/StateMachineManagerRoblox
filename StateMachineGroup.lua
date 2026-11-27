@@ -44,7 +44,7 @@ function StateMachineGroup.new(): Group
 
 	local function compact()
 		-- Rebuild both containers to release old peak capacity after heavy churn.
-		local newOrder: {Record} = table.create(count)
+		local newOrder: {Record} = {}
 		local newRecords: {[Member]: Record} = {}
 		for _, record in ipairs(order) do
 			local member = record.Member
