@@ -1,6 +1,6 @@
 # StateMachineManager for Roblox
 
-A reusable finite-state machine for rounds, NPCs, abilities, interactions, menus and more. **3.0.0-rc.2** is a release candidate. MIT; no runtime dependencies, automatic loops or networking.
+A reusable finite-state machine for rounds, NPCs, abilities, interactions, menus and more. **3.0.0** is the stable release. [Release downloads](https://github.com/UniversoGalactico/StateMachineManagerRoblox/releases/tag/v3.0.0). MIT; no runtime dependencies, automatic loops or networking.
 
 ## Start in one minute
 

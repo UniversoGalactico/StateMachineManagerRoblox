@@ -6,7 +6,7 @@
 - `python3 tests/typecheck.py --analyzer /path/to/luau-analyze`: strict analysis of both modules using a CLI-only `task` declaration; it is not a substitute for Studio's Roblox-aware analyzer.
 - `python3 tests/mutation.py --luau /path/to/luau`: selected deliberately broken implementations must be rejected by regression tests. A compiler failure or timeout does not count as detection.
 - `python3 tests/benchmark.py --luau /path/to/luau --out bench.json`: optional local microbenchmark. Do not interpret CLI results as Roblox performance or supported entity counts.
-- `tests/studio_smoke.server.lua`: 15 Studio-only checks including real `task.wait` cancellation, Heartbeat and group integration. No DataStore or other API access is required. Not yet executed by the maintainer as of rc.2 development.
+- `tests/studio_smoke.server.lua`: 15 Studio-only checks including real `task.wait` cancellation, Heartbeat and group integration. No DataStore or other API access is required. The maintainer reported 15/15 passing in Roblox Studio on rc.2 (2026-11-27); this is a reported result, not independently collected telemetry.
 
 ## Adversarial numerical audit
 
@@ -19,3 +19,7 @@ The final two seeds record 1,268,640 checks across O0/O1/O2 with zero observed d
 ## Audit boundary
 
 CLI testing cannot establish Roblox scheduler cancellation, game-specific side effects, frame rate, networking behavior, or performance at production scale. The group is optional and incurs coroutine overhead for adapter isolation. Neither module provides a network lock, transactional callbacks, watchdog for infinite loops, or hierarchical statecharts. Integrators own runtime scheduling, validation, error handling and cleanup.
+
+## Stable release
+
+The v3.0.0 runtime modules differ from the tested rc.2 modules only in their VERSION strings. Historical evidence retains the original source hashes. CI reruns strict analysis, regression and selected mutation tests on the final release. Studio smoke tests do not establish capacity, production performance or behavior in all games.

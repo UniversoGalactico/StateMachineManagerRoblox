@@ -16,7 +16,7 @@ export type Group = {
 	Destroy: (self: Group) -> (boolean, string?),
 }
 type Record = {Member: Member?, Step: ((any, number) -> (boolean, string?, any?))?}
-local StateMachineGroup = {VERSION="3.0.0-rc.2"}
+local StateMachineGroup = {VERSION="3.0.0"}
 
 -- Adapters are permitted, but a broken adapter must not suspend a group tick.
 local function call(step: any, member: Member, dt: number): (boolean, string?, any?)
