@@ -1,377 +1,151 @@
---[[
-	StateMachineManager.lua | Generic State Machine Engine for NPCs
-	Motor de Estados Genérico para NPCs
-	
-	🌐 ENGLISH / ESPAÑOL 🌐
-	
-	🔒 FEATURES / CARACTERÍSTICAS:
-	• Supports 100+ concurrent NPCs / Soporta más de 100 NPCs simultáneos
-	• Per-NPC mutex with pending state queue / Mutex por NPC con cola de estados pendientes
-	• Rate limiting for state changes / Rate limiting para cambios de estado
-	• Auto-cleanup of destroyed NPCs / Auto-limpieza de NPCs destruidos
-	• Heartbeat optimization (stops when idle) / Optimización de Heartbeat (se detiene si no hay NPCs)
-	• Memory leak prevention with periodic cleanup / Prevención de fugas de memoria con limpieza periódica
-	
-	📚 USAGE / USO:
-	1. Place this ModuleScript in ServerScriptService.ServerModules
-	2. Require it: local StateMachineManager = require(script.Parent.StateMachineManager)
-	3. Call StateMachineManager.registerNPC(model, states, initialState, initialData)
-	4. Call StateMachineManager.setState(model, newState) to change state
-	5. Call StateMachineManager.unregisterNPC(model) when the NPC is removed
-	
-	By Universogalactico64 – Free module. More advanced systems on Talent Hub.
-]]
+--!nonstrict
+-- A synchronous finite-state machine. No services, global registry or background tasks.
+local StateMachine = {VERSION="3.0.0-rc.1"}
 
-local StateMachineManager = {}
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-
-local CONFIG = table.freeze({
-	MAX_NPCS = 100,
-	MAX_STATEDATA_KEYS = 100,
-	STATE_CHANGE_RATE = 10,            -- cambios de estado por segundo por NPC
-	HEARTBEAT_STOP_WHEN_EMPTY = true,  -- detener Heartbeat si no hay NPCs
-	WATCHDOG_INTERVAL = 30,            -- segundos entre limpiezas de memoria
-})
-
--- Estado interno
-local npcs = {}                  -- array de NPCs
-local npcLookup = {}             -- [model] = index en npcs
-local heartbeatConn = nil
-local loopActive = false
-
--- Rate limiting para cambios de estado (por NPC)
-local stateChangeTimestamps = {} -- [npcKey] = {timestamps}
-
--- Helper de logs
-local function log(level, msg)
-	if level == "warn" then
-		warn("[StateMachine] " .. msg)
-	elseif level == "info" then
-		print("[StateMachine] " .. msg)
-	end
+local function plain(value)
+	return type(value)=="table" and getmetatable(value)==nil
 end
 
--- Sanitización de datos (patrón DataManager)
-local function isValidData(value)
-	if value == nil then return true end -- nil es válido
-	local t = type(value)
-	if t == "function" or t == "userdata" or t == "thread" then return false end
-	if typeof(value) == "Instance" then return false end
-	if t == "number" and value ~= value then return false end
-	if t == "table" then
-		local count = 0
-		for k, v in pairs(value) do
-			count += 1
-			if count > CONFIG.MAX_STATEDATA_KEYS then return false end
-			if not isValidData(k) or not isValidData(v) then return false end
-		end
-	end
-	return true
+local function nameValid(name)
+	return type(name)=="string" and #name>0 and #name<=128
 end
 
--- Adquiere mutex para un NPC
-local function lockNPC(npc)
-	if npc.mutex then return false end
-	npc.mutex = true
-	return true
+-- A callback is allowed to finish synchronously, never to suspend the machine.
+-- Cancellation cannot undo side effects already performed by user code.
+local function invoke(fn,...)
+	local thread=coroutine.create(fn)
+	local ok,result=coroutine.resume(thread,...)
+	if coroutine.status(thread)~="dead" then
+		if task and task.cancel then pcall(task.cancel,thread) end
+		pcall(coroutine.close,thread)
+		return false,"CALLBACK_YIELDED"
+	end
+	if not ok then return false,"CALLBACK_ERROR",result end
+	return true,result
 end
 
-local function unlockNPC(npc)
-	npc.mutex = false
-end
+local OPTIONS=table.freeze({Initial=true,States=true,Context=true,OnChanged=true})
+local STATE_OPTIONS=table.freeze({Transitions=true,Update=true})
 
--- Rate limiting para cambios de estado
-local function isStateChangeLimited(npcKey)
-	local now = os.clock()
-	stateChangeTimestamps[npcKey] = stateChangeTimestamps[npcKey] or {}
-	local ts = stateChangeTimestamps[npcKey]
-	local i = 1
-	while ts[i] and (now - ts[i]) > 1.0 do
-		table.remove(ts, i)
-	end
-	if #ts >= CONFIG.STATE_CHANGE_RATE then return true end
-	table.insert(ts, now)
-	return false
-end
-
--- Cambia el estado de un NPC de forma segura
-local function setState(npc, newStateName)
-	if not npc or not npc.model or not npc.model.Parent then
-		log("warn", "setState: NPC inválido o destruido")
-		return
-	end
-	if not npc.states[newStateName] then
-		log("warn", "setState: estado '" .. tostring(newStateName) .. "' no definido")
-		return
-	end
-	if npc.currentState == newStateName then return end
-
-	-- Clave única para rate limiting (se calcula después de validar el modelo)
-	local npcKey = tostring(npc.model) .. "_" .. npc._id
-
-	-- Rate limiting
-	if isStateChangeLimited(npcKey) then
-		log("warn", "setState: rate limit para " .. npcKey)
-		return
-	end
-
-	-- Mutex
-	if not lockNPC(npc) then
-		-- Encolar cambio para después
-		if not npc._pendingState then
-			npc._pendingState = newStateName
-			task.delay(0, function()
-				if npc and npc.model and npc.model.Parent then
-					setState(npc, npc._pendingState)
-					npc._pendingState = nil
-				end
-			end)
-		else
-			npc._pendingState = newStateName
-		end
-		return
-	end
-
-	local oldState = npc.currentState
-	local oldCbs = npc.states[oldState]
-	local newCbs = npc.states[newStateName]
-
-	-- Ejecutar onExit (protegido)
-	if oldCbs and oldCbs.onExit then
-		pcall(oldCbs.onExit, npc.model, npc.stateData)
-	end
-
-	-- Actualizar estado
-	npc.currentState = newStateName
-
-	-- Ejecutar onEnter (protegido)
-	if newCbs and newCbs.onEnter then
-		pcall(newCbs.onEnter, npc.model, npc.stateData)
-	end
-
-	unlockNPC(npc)
-	log("info", "NPC cambió de '" .. oldState .. "' a '" .. newStateName .. "'")
-end
-
--- Bucle Heartbeat (con protección de iteración)
-local function startHeartbeat()
-	if heartbeatConn then return end
-	loopActive = true
-	heartbeatConn = RunService.Heartbeat:Connect(function(dt)
-		-- Sanitizar dt
-		if type(dt) ~= "number" or dt ~= dt or dt <= 0 or dt > 1 then
-			dt = 1/60 -- valor por defecto
-		end
-
-		-- Clonar la lista de NPCs para evitar problemas si un callback modifica la tabla
-		local currentNPCs = table.clone(npcs)
-		local toRemove = {}
-
-		for i, npc in ipairs(currentNPCs) do
-			if not npc.model or not npc.model.Parent then
-				table.insert(toRemove, i)
-				continue
-			end
-
-			local state = npc.currentState
-			local cbs = npc.states[state]
-			if cbs and cbs.onUpdate then
-				local ok, err = pcall(cbs.onUpdate, npc.model, dt, npc.stateData)
-				if not ok then
-					log("warn", "Error en onUpdate de '" .. state .. "': " .. tostring(err))
-				end
+function StateMachine.new(config)
+	assert(plain(config),"INVALID_CONFIG")
+	for key in next,config do assert(OPTIONS[key],"UNKNOWN_OPTION") end
+	assert(plain(config.States),"INVALID_STATES")
+	assert(config.OnChanged==nil or type(config.OnChanged)=="function","INVALID_ON_CHANGED")
+	local states={}
+	for name,definition in next,config.States do
+		assert(nameValid(name) and plain(definition),"INVALID_STATE")
+		for key in next,definition do assert(STATE_OPTIONS[key],"UNKNOWN_STATE_OPTION") end
+		assert(definition.Update==nil or type(definition.Update)=="function","INVALID_UPDATE")
+		local edges={}
+		if definition.Transitions~=nil then
+			assert(plain(definition.Transitions),"INVALID_TRANSITIONS")
+			for target,guard in next,definition.Transitions do
+				assert(nameValid(target) and (guard==true or type(guard)=="function"),"INVALID_TRANSITION")
+				assert(target~=name,"SELF_TRANSITION_NOT_SUPPORTED")
+				edges[target]=guard
 			end
 		end
-
-		-- Eliminar NPCs destruidos (de atrás hacia adelante)
-		for i = #toRemove, 1, -1 do
-			local idx = toRemove[i]
-			local npc = npcs[idx] -- usar la tabla original para obtener el NPC real
-			if npc then
-				local cbs = npc.states[npc.currentState]
-				if cbs and cbs.onExit then
-					pcall(cbs.onExit, npc.model, npc.stateData)
-				end
-				-- Limpiar rate limiting
-				local npcKey = tostring(npc.model) .. "_" .. npc._id
-				stateChangeTimestamps[npcKey] = nil
-				npcLookup[npc.model] = nil
-				table.remove(npcs, idx)
-				-- Actualizar índices en lookup
-				for j = idx, #npcs do
-					npcLookup[npcs[j].model] = j
-				end
-				log("info", "NPC auto‑eliminado (destruido). Restantes: " .. #npcs)
-			end
+		states[name]={Transitions=table.freeze(edges),Update=definition.Update}
+	end
+	assert(nameValid(config.Initial) and states[config.Initial],"INVALID_INITIAL_STATE")
+	for _,definition in pairs(states) do
+		for target in pairs(definition.Transitions) do
+			assert(states[target],"UNKNOWN_TRANSITION_TARGET")
 		end
+		table.freeze(definition)
+	end
+	table.freeze(states)
+	local context=config.Context
+	local onChanged=config.OnChanged
+	local current=config.Initial
+	local generation=table.freeze({})
+	local busy=false
+	local destroyed=false
+	local machine={}
 
-		-- Detener Heartbeat si no hay NPCs
-		if #npcs == 0 and CONFIG.HEARTBEAT_STOP_WHEN_EMPTY then
-			loopActive = false
-			if heartbeatConn then
-				heartbeatConn:Disconnect()
-				heartbeatConn = nil
-			end
+	local function ready()
+		if destroyed then return false,"DESTROYED" end
+		if busy then return false,"BUSY" end
+		return true
+	end
+
+	-- All state mutations occur after a successful guard. Notifications run
+	-- after commit, so notification failure never masquerades as rejection.
+	local function change(target,payload)
+		if not nameValid(target) or not states[target] then return false,"UNKNOWN_STATE" end
+		if target==current then return false,"SAME_STATE" end
+		local guard=states[current].Transitions[target]
+		if not guard then return false,"TRANSITION_NOT_ALLOWED" end
+		if guard~=true then
+			local ok,result,detail=invoke(guard,context,current,target,payload)
+			if not ok then return false,result,detail end
+			if result~=true then return false,"GUARD_REJECTED" end
 		end
-	end)
-end
-
--- Watchdog de limpieza de memoria
-task.spawn(function()
-	while true do
-		task.wait(CONFIG.WATCHDOG_INTERVAL)
-		local now = os.clock()
-		for npcKey, timestamps in pairs(stateChangeTimestamps) do
-			-- Eliminar entradas vacías o muy antiguas
-			local i = 1
-			while timestamps[i] and (now - timestamps[i]) > 60 do
-				table.remove(timestamps, i)
-			end
-			if #timestamps == 0 then
-				stateChangeTimestamps[npcKey] = nil
-			end
+		local previous=current
+		current=target
+		generation=table.freeze({})
+		if onChanged then
+			local ok,result,detail=invoke(onChanged,context,previous,target,payload)
+			if not ok then return true,result,detail end
 		end
-	end
-end)
-
--- ================================================================
--- API PÚBLICA
--- ================================================================
-
-local nextId = 0
-function StateMachineManager.registerNPC(npcModel, stateDefinitions, initialStateName, initialStateData)
-	if not npcModel or not npcModel.Parent then
-		log("warn", "registerNPC: modelo inválido")
-		return false
-	end
-	if type(stateDefinitions) ~= "table" or not stateDefinitions[initialStateName] then
-		log("warn", "registerNPC: estados inválidos")
-		return false
-	end
-	if #npcs >= CONFIG.MAX_NPCS then
-		log("warn", "registerNPC: límite alcanzado")
-		return false
-	end
-	if npcLookup[npcModel] then
-		log("warn", "registerNPC: ya registrado")
-		return false
+		return true
 	end
 
-	local humanoid = npcModel:FindFirstChildOfClass("Humanoid")
-	if not humanoid then
-		log("warn", "registerNPC: el modelo no tiene Humanoid, no podrá moverse")
+	function machine:GetState()
+		if destroyed then return nil,"DESTROYED" end
+		return current
 	end
-
-	-- Sanitizar stateData
-	local sanitizedData = {}
-	if initialStateData then
-		if not isValidData(initialStateData) then
-			log("warn", "registerNPC: stateData contiene tipos prohibidos, se ignorará")
-		else
-			sanitizedData = table.clone(initialStateData)
-		end
+	function machine:Token()
+		if destroyed then return nil,"DESTROYED" end
+		return generation
 	end
-
-	-- Asignar ID único
-	nextId = nextId + 1
-	local npcId = nextId
-
-	local npc = {
-		model = npcModel,
-		states = stateDefinitions,
-		currentState = initialStateName,
-		stateData = sanitizedData,
-		mutex = false,
-		_pendingState = nil,
-		_id = npcId,
-	}
-	table.insert(npcs, npc)
-	npcLookup[npcModel] = #npcs
-
-	if not heartbeatConn then
-		startHeartbeat()
+	function machine:IsCurrent(token)
+		return not destroyed and token==generation
 	end
-
-	-- Ejecutar onEnter del estado inicial (protegido y con mutex)
-	lockNPC(npc)
-	local initCbs = stateDefinitions[initialStateName]
-	if initCbs and initCbs.onEnter then
-		pcall(initCbs.onEnter, npcModel, sanitizedData)
+	function machine:CanTransition(target)
+		-- Graph-only query. It deliberately does not execute a user guard.
+		return not destroyed and nameValid(target) and states[current].Transitions[target]~=nil
 	end
-	unlockNPC(npc)
-
-	log("info", "NPC registrado (ID: " .. npcId .. "). Total: " .. #npcs)
-	return true
+	function machine:Transition(target,payload)
+		local ok,err=ready()
+		if not ok then return false,err end
+		busy=true
+		local success,code,detail=change(target,payload)
+		busy=false
+		return success,code,detail
+	end
+	function machine:TransitionIfCurrent(token,target,payload)
+		local ok,err=ready()
+		if not ok then return false,err end
+		if token~=generation then return false,"STALE_TOKEN" end
+		return machine:Transition(target,payload)
+	end
+	function machine:Step(dt)
+		local ok,err=ready()
+		if not ok then return false,err end
+		if type(dt)~="number" or dt~=dt or dt<0 or dt==math.huge then return false,"INVALID_DT" end
+		local update=states[current].Update
+		if not update then return true end
+		busy=true
+		local ran,target,detail=invoke(update,context,dt,current)
+		if not ran then busy=false; return false,target,detail end
+		if target==nil then busy=false; return true end
+		local success,code,extra=change(target,nil)
+		busy=false
+		return success,code,extra
+	end
+	function machine:Destroy()
+		if destroyed then return true end
+		if busy then return false,"BUSY" end
+		destroyed=true
+		current=nil
+		generation=nil
+		context=nil
+		onChanged=nil
+		states=nil
+		return true
+	end
+	return table.freeze(machine)
 end
-
-function StateMachineManager.unregisterNPC(npcModel)
-	local idx = npcLookup[npcModel]
-	if not idx then return false end
-
-	local npc = npcs[idx]
-	-- Ejecutar onExit del estado actual
-	local cbs = npc.states[npc.currentState]
-	if cbs and cbs.onExit then
-		pcall(cbs.onExit, npcModel, npc.stateData)
-	end
-
-	-- Limpiar estado pendiente
-	npc._pendingState = nil
-
-	-- Limpiar rate limiting
-	local npcKey = tostring(npc.model) .. "_" .. npc._id
-	stateChangeTimestamps[npcKey] = nil
-
-	-- Eliminar y actualizar índices
-	table.remove(npcs, idx)
-	npcLookup[npcModel] = nil
-	for i = idx, #npcs do
-		npcLookup[npcs[i].model] = i
-	end
-
-	-- Detener Heartbeat si no quedan NPCs
-	if #npcs == 0 and CONFIG.HEARTBEAT_STOP_WHEN_EMPTY then
-		loopActive = false
-		if heartbeatConn then
-			heartbeatConn:Disconnect()
-			heartbeatConn = nil
-		end
-	end
-
-	log("info", "NPC eliminado. Restantes: " .. #npcs)
-	return true
-end
-
-function StateMachineManager.setState(npcModel, newStateName)
-	local idx = npcLookup[npcModel]
-	if not idx then
-		log("warn", "setState: NPC no encontrado")
-		return
-	end
-	setState(npcs[idx], newStateName)
-end
-
-function StateMachineManager.stop()
-	loopActive = false
-	if heartbeatConn then
-		heartbeatConn:Disconnect()
-		heartbeatConn = nil
-	end
-	-- Limpiar todos los NPCs (sin ejecutar onExit, es detención de emergencia)
-	for _, npc in ipairs(npcs) do
-		unlockNPC(npc)
-		npc._pendingState = nil
-	end
-	table.clear(npcs)
-	table.clear(npcLookup)
-	table.clear(stateChangeTimestamps)
-	log("info", "Motor detenido.")
-end
-
--- Cierre seguro
-game:BindToClose(function()
-	StateMachineManager.stop()
-end)
-
-return StateMachineManager
+return table.freeze(StateMachine)
