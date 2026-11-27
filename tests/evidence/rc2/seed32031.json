@@ -1,0 +1,273 @@
+{
+  "source_sha256": "c737238e3af703c1c4c6df924b2397c9b617fb473bff82e815c1cc2701728174",
+  "campaign_sha256": "f11e5c368059a6928f16756b5b07ed53786fbb7a06b5ae8258f94cf3dbaff411",
+  "tool_pins": {
+    "numeric_fuzz320.py": "5d4cf91db579d2097cac2d13b9a77bef0bbad54878a47ad493a5d502d6f3e4b0",
+    "binary64_320.py": "8995a1949fcc910986bcfe38a9b9c406410db3c25929c45233f1a250a6fe8253",
+    "runtime/linux/luau": "7741b96bd8fadb340965b7468dc4a2be8fe41247b8219bd8d4a7e80f16b40625",
+    "vm_binary64_320.py": "ba264eb5b102209ab0dbacc7c189a8fcd1536f08ed0805d1f88b4647be370af6"
+  },
+  "seed": 32031,
+  "runs": [
+    {
+      "optimization": 0,
+      "counts": {
+        "step_token": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "step_admission": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "timer_remaining_nonnegative": {
+          "checks": 2185,
+          "differences": 0
+        },
+        "name_roundtrip": {
+          "checks": 926,
+          "differences": 0
+        },
+        "name_admission": {
+          "checks": 3000,
+          "differences": 0
+        },
+        "step_elapsed": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "duration_admission": {
+          "checks": 4000,
+          "differences": 0
+        },
+        "timer_second_state": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_second_success": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_first_token": {
+          "checks": 8000,
+          "differences": 0
+        },
+        "oracle": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "timer_first_success": {
+          "checks": 8000,
+          "differences": 0
+        },
+        "timer_second_token": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "sum_monotonic": {
+          "checks": 37927,
+          "differences": 0
+        },
+        "zero_step_invariance": {
+          "checks": 1500,
+          "differences": 0
+        },
+        "step_error": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "sum_two_ulp": {
+          "checks": 1500,
+          "differences": 0
+        },
+        "sum_admission": {
+          "checks": 37927,
+          "differences": 0
+        },
+        "timer_second_elapsed": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_first_state": {
+          "checks": 8000,
+          "differences": 0
+        }
+      },
+      "witnesses": []
+    },
+    {
+      "optimization": 1,
+      "counts": {
+        "step_token": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "step_admission": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "timer_remaining_nonnegative": {
+          "checks": 2185,
+          "differences": 0
+        },
+        "name_roundtrip": {
+          "checks": 926,
+          "differences": 0
+        },
+        "name_admission": {
+          "checks": 3000,
+          "differences": 0
+        },
+        "step_elapsed": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "duration_admission": {
+          "checks": 4000,
+          "differences": 0
+        },
+        "timer_second_state": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_second_success": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_first_token": {
+          "checks": 8000,
+          "differences": 0
+        },
+        "oracle": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "timer_first_success": {
+          "checks": 8000,
+          "differences": 0
+        },
+        "timer_second_token": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "sum_monotonic": {
+          "checks": 37927,
+          "differences": 0
+        },
+        "zero_step_invariance": {
+          "checks": 1500,
+          "differences": 0
+        },
+        "step_error": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "sum_two_ulp": {
+          "checks": 1500,
+          "differences": 0
+        },
+        "sum_admission": {
+          "checks": 37927,
+          "differences": 0
+        },
+        "timer_second_elapsed": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_first_state": {
+          "checks": 8000,
+          "differences": 0
+        }
+      },
+      "witnesses": []
+    },
+    {
+      "optimization": 2,
+      "counts": {
+        "step_token": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "step_admission": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "timer_remaining_nonnegative": {
+          "checks": 2185,
+          "differences": 0
+        },
+        "name_roundtrip": {
+          "checks": 926,
+          "differences": 0
+        },
+        "name_admission": {
+          "checks": 3000,
+          "differences": 0
+        },
+        "step_elapsed": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "duration_admission": {
+          "checks": 4000,
+          "differences": 0
+        },
+        "timer_second_state": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_second_success": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_first_token": {
+          "checks": 8000,
+          "differences": 0
+        },
+        "oracle": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "timer_first_success": {
+          "checks": 8000,
+          "differences": 0
+        },
+        "timer_second_token": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "sum_monotonic": {
+          "checks": 37927,
+          "differences": 0
+        },
+        "zero_step_invariance": {
+          "checks": 1500,
+          "differences": 0
+        },
+        "step_error": {
+          "checks": 16384,
+          "differences": 0
+        },
+        "sum_two_ulp": {
+          "checks": 1500,
+          "differences": 0
+        },
+        "sum_admission": {
+          "checks": 37927,
+          "differences": 0
+        },
+        "timer_second_elapsed": {
+          "checks": 4323,
+          "differences": 0
+        },
+        "timer_first_state": {
+          "checks": 8000,
+          "differences": 0
+        }
+      },
+      "witnesses": []
+    }
+  ],
+  "elapsed_seconds": 2.730480085000636,
+  "scope": "finite numerical, name validation and timer checks, rounded binary64 time with two-ULP tolerance for longer sums; not formal verification or Roblox Studio tests"
+}

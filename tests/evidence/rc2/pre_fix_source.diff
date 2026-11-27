@@ -1,0 +1,136 @@
+--- StateMachineManagerRoblox.lua
++++ pre_fix.lua
+@@ -1,7 +1,7 @@
+ --!strict
+ -- Deterministic, caller-stepped finite state machines. No automatic tasks or services.
+ export type Guard = (context: any, from: string, to: string, payload: any) -> boolean
+-export type Update = (context: any, dt: number, state: string) -> (string?, any?)
++export type Update = (context: any, dt: number, state: string) -> string?
+ export type Notification = (context: any, from: string, to: string, payload: any) -> ()
+ export type StateDefinition = {
+ 	Transitions: {[string]: (true | Guard)}?,
+@@ -66,26 +66,22 @@
+ end
+ 
+ -- No callback can suspend a transition. Cancellation cannot undo user side effects.
+-local function invoke(fn: any, ...: any): (boolean, any, any?)
++local function invoke(fn: (...any) -> any, ...: any): (boolean, any, any?)
+ 	local thread = coroutine.create(fn)
+-	local ok, result, payload = coroutine.resume(thread, ...)
++	local ok, result = coroutine.resume(thread, ...)
+ 	if coroutine.status(thread) ~= "dead" then
+ 		if task and task.cancel then pcall(task.cancel, thread) end
+ 		pcall(coroutine.close, thread)
+ 		return false, "CALLBACK_YIELDED", nil
+ 	end
+ 	if not ok then return false, "CALLBACK_ERROR", result end
+-	return true, result, payload
+-end
+-
+-local OPTIONS: {[string]: boolean} = {Initial=true, States=true, Context=true, OnChanged=true}
+-local GRAPH_OPTIONS: {[string]: boolean} = {Initial=true, States=true}
+-local STATE_OPTIONS: {[string]: boolean} = {Transitions=true, Events=true, After=true, Update=true, Enter=true, Exit=true}
+-local TIMER_OPTIONS: {[string]: boolean} = {Seconds=true, Target=true}
+-table.freeze(OPTIONS)
+-table.freeze(GRAPH_OPTIONS)
+-table.freeze(STATE_OPTIONS)
+-table.freeze(TIMER_OPTIONS)
++	return true, result, nil
++end
++
++local OPTIONS = table.freeze({Initial=true, States=true, Context=true, OnChanged=true})
++local GRAPH_OPTIONS = table.freeze({Initial=true, States=true})
++local STATE_OPTIONS = table.freeze({Transitions=true, Events=true, After=true, Update=true, Enter=true, Exit=true})
++local TIMER_OPTIONS = table.freeze({Seconds=true, Target=true})
+ local function validateOptions(value: any, allowed: {[string]: boolean}, code: string)
+ 	assert(plain(value), "INVALID_TABLE")
+ 	for key in next, value do assert(allowed[key] == true, code) end
+@@ -97,8 +93,7 @@
+ 	assert(plain(config.States), "INVALID_STATES")
+ 	local states: States = {}
+ 	for name, definition in next, config.States do
+-		assert(type(name) == "string" and nameValid(name) and plain(definition), "INVALID_STATE")
+-		local stateName: string = name
++		assert(nameValid(name) and plain(definition), "INVALID_STATE")
+ 		validateOptions(definition, STATE_OPTIONS, "UNKNOWN_STATE_OPTION")
+ 		for _, field in ipairs({"Update", "Enter", "Exit"}) do
+ 			assert(definition[field] == nil or type(definition[field]) == "function", "INVALID_CALLBACK")
+@@ -107,19 +102,19 @@
+ 		if definition.Transitions ~= nil then
+ 			assert(plain(definition.Transitions), "INVALID_TRANSITIONS")
+ 			for target, guard in next, definition.Transitions do
+-				assert(type(target) == "string" and nameValid(target) and (guard == true or type(guard) == "function"), "INVALID_TRANSITION")
+-				edges[target] = guard :: (true | Guard)
++				assert(nameValid(target) and (guard == true or type(guard) == "function"), "INVALID_TRANSITION")
++				edges[target] = guard
+ 			end
+ 		end
+ 		local events: {[string]: string} = {}
+ 		if definition.Events ~= nil then
+ 			assert(plain(definition.Events), "INVALID_EVENTS")
+ 			for event, target in next, definition.Events do
+-				assert(type(event) == "string" and type(target) == "string" and nameValid(event) and nameValid(target) and edges[target] ~= nil, "INVALID_EVENT")
++				assert(nameValid(event) and nameValid(target) and edges[target] ~= nil, "INVALID_EVENT")
+ 				events[event] = target
+ 			end
+ 		end
+-		local after: {Seconds: number, Target: string}? = nil
++		local after = nil
+ 		if definition.After ~= nil then
+ 			validateOptions(definition.After, TIMER_OPTIONS, "UNKNOWN_TIMER_OPTION")
+ 			assert(durationValid(definition.After.Seconds), "INVALID_DURATION")
+@@ -133,8 +128,8 @@
+ 			Transitions=edges, Events=events, TransitionNames=keys(edges), EventNames=keys(events),
+ 			After=after, Update=definition.Update, Enter=definition.Enter, Exit=definition.Exit,
+ 		}
+-		states[stateName] = state
+ 		table.freeze(state)
++		states[name] = state
+ 	end
+ 	assert(nameValid(config.Initial) and states[config.Initial], "INVALID_INITIAL_STATE")
+ 	for _, state in pairs(states) do
+@@ -277,33 +272,29 @@
+ 		if not durationValid(dt) then return false, "INVALID_DT", nil end
+ 		-- Compensated addition (Kahan). For nonnegative steps, roundoff can
+ 		-- occasionally make the corrected sum smaller; never move elapsed back.
+-		-- Zero time is a legitimate update, but must not consume rounding debt.
+-		if dt > 0 then
+-			local adjusted = dt - correction
+-			local nextElapsed = elapsed + adjusted
+-			if not durationValid(nextElapsed) then return false, "TIME_OVERFLOW", nil end
+-			if nextElapsed >= elapsed then
+-				correction = (nextElapsed - elapsed) - adjusted
+-				elapsed = nextElapsed
+-			else
+-				correction -= dt
+-			end
++		local adjusted = dt - correction
++		local nextElapsed = elapsed + adjusted
++		if not durationValid(nextElapsed) then return false, "TIME_OVERFLOW", nil end
++		if nextElapsed >= elapsed then
++			correction = (nextElapsed - elapsed) - adjusted
++			elapsed = nextElapsed
++		else
++			correction -= dt
+ 		end
+ 		local definition = state()
+ 		local update = definition.Update
+ 		local target: any = nil
+-		local payload: any = nil
+ 		busy = true
+ 		if update ~= nil then
+ 			local ran, result, detail = invoke(update, context, dt, current)
+ 			if not ran then busy = false; return false, result, detail end
+-			target, payload = result, detail
++			target = result
+ 		end
+ 		-- An explicit Update target has priority; at most one transition per Step.
+ 		local timer = definition.After
+-		if target == nil and timer ~= nil and elapsed >= timer.Seconds then target, payload = timer.Target, nil end
++		if target == nil and timer ~= nil and elapsed >= timer.Seconds then target = timer.Target end
+ 		if target == nil then busy = false; return true, nil, nil end
+-		local success, code, detail = transition(target, payload)
++		local success, code, detail = transition(target, nil)
+ 		busy = false
+ 		return success, code, detail
+ 	end
