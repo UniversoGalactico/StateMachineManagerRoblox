@@ -1,0 +1,129 @@
+{
+  "scope": "local CLI O2 microbenchmark, includes machine construction/destruction and timed-state steps; not Roblox Studio or production capacity",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "module_sha256": "222b00095da037ae08a87e7df045cfaa098413db05d90337478aed21b2aafc8b",
+  "group_sha256": "cf977cc01d6fb48facbbd86d259b3fd9db68f8bec84f4b988cf27ac2419f95bc",
+  "vm_sha256": "7741b96bd8fadb340965b7468dc4a2be8fe41247b8219bd8d4a7e80f16b40625",
+  "rows": [
+    {
+      "operation": "new",
+      "seconds": 0.028514853000160656,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "compiled",
+      "seconds": 0.008130086000164738,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "direct_step",
+      "seconds": 0.17012382200027787,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "group_step",
+      "seconds": 0.8535157220003384,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "compiled",
+      "seconds": 0.007597535000058997,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "new",
+      "seconds": 0.03444145399953413,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "group_step",
+      "seconds": 0.7999006890004239,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "direct_step",
+      "seconds": 0.16534253999998327,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "new",
+      "seconds": 0.026593259000037506,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "compiled",
+      "seconds": 0.00598188499952812,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "direct_step",
+      "seconds": 0.16500295599962556,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "group_step",
+      "seconds": 0.8155795520005995,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "compiled",
+      "seconds": 0.008689008000146714,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "new",
+      "seconds": 0.02853077200052212,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "group_step",
+      "seconds": 0.8662787249995745,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "direct_step",
+      "seconds": 0.1646294759993907,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "new",
+      "seconds": 0.028418243000487564,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "compiled",
+      "seconds": 0.005862732999958098,
+      "units": 3000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "direct_step",
+      "seconds": 0.16272472199943877,
+      "units": 900000,
+      "verified_result": 3000
+    },
+    {
+      "operation": "group_step",
+      "seconds": 1.0449186680007188,
+      "units": 900000,
+      "verified_result": 3000
+    }
+  ]
+}

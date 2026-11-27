@@ -3,13 +3,12 @@ local RunService=game:GetService("RunService")
 local StateMachine=require(game.ServerScriptService.StateMachine)
 local npc=script.Parent
 local machine=StateMachine.new({
-	Initial="Idle",
-	Context=npc,
+	Initial="Idle", Context=npc,
 	States={
-		Idle={Transitions={Alert=true},Update=function(model,dt)
+		Idle={Transitions={Alert=true},Update=function(model)
 			if model:GetAttribute("Alert")==true then return "Alert" end
 		end},
-		Alert={Transitions={Idle=true},Update=function(model,dt)
+		Alert={Transitions={Idle=true},Update=function(model)
 			if model:GetAttribute("Alert")~=true then return "Idle" end
 		end},
 	},
