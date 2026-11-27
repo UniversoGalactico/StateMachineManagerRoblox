@@ -1,82 +1,82 @@
 {
   "scope": "selected non-equivalent deliberate semantic mutations; not a universal mutation score",
-  "module_sha256": "af214dbe36c2e45798c9f7daf2efa3f3d98860592c1bcc4859e86e517b610762",
+  "module_sha256": "c737238e3af703c1c4c6df924b2397c9b617fb473bff82e815c1cc2701728174",
   "group_sha256": "1c705845403107b71d948a1719fbcde403177dd64d9d83e2804a883013b79384",
   "rows": [
     {
       "mutant": "skip_guard",
       "detected": true,
-      "detail": "guard and payload: /tmp/tmpn8aen0ro/test.luau:474: true ~= false"
+      "detail": "guard and payload: /tmp/tmp18sp3w9u/test.luau:474: true ~= false"
     },
     {
       "mutant": "keep_old_generation",
       "detected": true,
-      "detail": "postcommit errors and yield: /tmp/tmpf787hp0s/test.luau:474: true ~= false"
+      "detail": "postcommit errors and yield: /tmp/tmpcykhfzpj/test.luau:474: true ~= false"
     },
     {
       "mutant": "keep_elapsed_on_commit",
       "detected": true,
-      "detail": "step and guard pipeline: /tmp/tmp21014k5e/test.luau:474: 2 ~= 0"
+      "detail": "step and guard pipeline: /tmp/tmptmuaijj1/test.luau:474: 2 ~= 0"
     },
     {
       "mutant": "report_committed_as_rejected",
       "detected": true,
-      "detail": "postcommit errors and yield: /tmp/tmpkaegjflg/test.luau:474: false ~= true"
+      "detail": "postcommit errors and yield: /tmp/tmpnq9jzi02/test.luau:474: false ~= true"
     },
     {
       "mutant": "skip_notification",
       "detected": true,
-      "detail": "notification ordering and error aggregation: /tmp/tmp28ympbc5/test.luau:474: 1 ~= 2"
+      "detail": "notification ordering and error aggregation: /tmp/tmpmk4i4dxa/test.luau:474: 1 ~= 2"
     },
     {
       "mutant": "allow_reentry",
       "detected": true,
-      "detail": "reentrancy rejected in all callback phases: /tmp/tmp2ms4reuh/test.luau:474: false ~= true"
+      "detail": "reentrancy rejected in all callback phases: /tmp/tmpvrotdvfc/test.luau:474: false ~= true"
     },
     {
       "mutant": "accept_unknown_event_target",
       "detected": true,
-      "detail": "reject bad definitions: /tmp/tmpo4f31x7_/test.luau:474: true ~= false"
+      "detail": "reject bad definitions: /tmp/tmpfqzc8f6p/test.luau:474: true ~= false"
     },
     {
       "mutant": "timer_overrides_update",
       "detected": true,
-      "detail": "update target has priority over timer: /tmp/tmpo59ba2zu/test.luau:474: B ~= C"
+      "detail": "update target has priority over timer: /tmp/tmps07ncywt/test.luau:474: B ~= C"
     },
     {
       "mutant": "consume_rounding_debt_on_zero",
       "detected": true,
-      "detail": "zero dt rounding witness is stable: /tmp/tmpahi3citr/test.luau:474: 0.000029000000000000004 ~= 0.000029"
+      "detail": "zero dt rounding witness is stable: /tmp/tmpxlmyvnk7/test.luau:474: 0.000029000000000000004 ~= 0.000029"
     },
     {
       "mutant": "drop_update_payload",
       "detected": true,
-      "detail": "update payload and timer payload isolation: /tmp/tmpzbpq39u5/test.luau:474: false ~= true"
+      "detail": "update payload and timer payload isolation: /tmp/tmphv_pfhpr/test.luau:474: false ~= true"
     },
     {
       "mutant": "ignore_foreign_event_token",
       "detected": true,
-      "detail": "events and stale event dispatch: /tmp/tmp_blxjx00/test.luau:474: true ~= false"
+      "detail": "events and stale event dispatch: /tmp/tmp0pfsj6or/test.luau:474: true ~= false"
     },
     {
       "mutant": "group_count_duplicate",
       "detected": true,
-      "detail": "group insertion order, duplicate and dt validation: /tmp/tmp5arfwvy_/test.luau:474: true ~= false"
+      "detail": "group insertion order, duplicate and dt validation: /tmp/tmppl4l9bd9/test.luau:474: true ~= false"
     },
     {
       "mutant": "group_aba_autoremoval",
       "detected": true,
-      "detail": "group ABA removal cannot remove replacement: /tmp/tmphere3ka0/test.luau:474: 1 ~= 0"
+      "detail": "group ABA removal cannot remove replacement: /tmp/tmpsb72zfb5/test.luau:474: 1 ~= 0"
     },
     {
       "mutant": "group_ignore_yield",
       "detected": true,
-      "detail": "group faults are isolated and reported: /tmp/tmp5as28rwp/test.luau:474: STEP_ERROR ~= STEP_YIELDED"
+      "detail": "group faults are isolated and reported: /tmp/tmpkv_u3pbz/test.luau:474: STEP_ERROR ~= STEP_YIELDED"
     },
     {
       "mutant": "group_false_success",
       "detected": true,
-      "detail": "group faults are isolated and reported: /tmp/tmpmlysn8yr/test.luau:474: 6 ~= 2"
+      "detail": "group faults are isolated and reported: /tmp/tmpneb3jeb_/test.luau:474: 6 ~= 2"
     }
   ]
 }

@@ -79,11 +79,12 @@
  		if definition.After ~= nil then
  			validateOptions(definition.After, TIMER_OPTIONS, "UNKNOWN_TIMER_OPTION")
  			assert(durationValid(definition.After.Seconds), "INVALID_DURATION")
-@@ -134,7 +129,7 @@
+@@ -133,8 +128,8 @@
+ 			Transitions=edges, Events=events, TransitionNames=keys(edges), EventNames=keys(events),
  			After=after, Update=definition.Update, Enter=definition.Enter, Exit=definition.Exit,
  		}
- 		table.freeze(state)
 -		states[stateName] = state
+ 		table.freeze(state)
 +		states[name] = state
  	end
  	assert(nameValid(config.Initial) and states[config.Initial], "INVALID_INITIAL_STATE")

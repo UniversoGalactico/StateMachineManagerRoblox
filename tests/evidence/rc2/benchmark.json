@@ -1,127 +1,127 @@
 {
   "scope": "local CLI O2 microbenchmark, includes machine construction/destruction and timed-state steps; not Roblox Studio or production capacity",
   "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
-  "module_sha256": "af214dbe36c2e45798c9f7daf2efa3f3d98860592c1bcc4859e86e517b610762",
+  "module_sha256": "c737238e3af703c1c4c6df924b2397c9b617fb473bff82e815c1cc2701728174",
   "group_sha256": "1c705845403107b71d948a1719fbcde403177dd64d9d83e2804a883013b79384",
   "vm_sha256": "7741b96bd8fadb340965b7468dc4a2be8fe41247b8219bd8d4a7e80f16b40625",
   "rows": [
     {
       "operation": "new",
-      "seconds": 0.02528480899945862,
+      "seconds": 0.035627057000056084,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "compiled",
-      "seconds": 0.013023206999605463,
+      "seconds": 0.010725854999691364,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "direct_step",
-      "seconds": 0.15796431099988695,
+      "seconds": 0.17074196499925165,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "group_step",
-      "seconds": 0.7215749369997866,
+      "seconds": 1.05533890300012,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "compiled",
-      "seconds": 0.008257507999587688,
+      "seconds": 0.00997303300027852,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "new",
-      "seconds": 0.024712823999834654,
+      "seconds": 0.024306577999595902,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "group_step",
-      "seconds": 0.7452142840002125,
+      "seconds": 0.8331267210005535,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "direct_step",
-      "seconds": 0.162883877999775,
+      "seconds": 0.1709783870001047,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "new",
-      "seconds": 0.02765609099969879,
+      "seconds": 0.03300570900046296,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "compiled",
-      "seconds": 0.013587028999609174,
+      "seconds": 0.0057629339999039075,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "direct_step",
-      "seconds": 0.16319976700015104,
+      "seconds": 0.17907643999933498,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "group_step",
-      "seconds": 0.7736317030003192,
+      "seconds": 0.818742810999538,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "compiled",
-      "seconds": 0.007985582999936014,
+      "seconds": 0.008904395000172372,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "new",
-      "seconds": 0.025534959000651725,
+      "seconds": 0.027123257999846828,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "group_step",
-      "seconds": 0.7409052350003549,
+      "seconds": 0.7676084959994114,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "direct_step",
-      "seconds": 0.1603884050000488,
+      "seconds": 0.15809264999916195,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "new",
-      "seconds": 0.02411154799938231,
+      "seconds": 0.028928274999998393,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "compiled",
-      "seconds": 0.010842018999937864,
+      "seconds": 0.010822057999575918,
       "units": 3000,
       "verified_result": 3000
     },
     {
       "operation": "direct_step",
-      "seconds": 0.16270396300024004,
+      "seconds": 0.15473288599969237,
       "units": 900000,
       "verified_result": 3000
     },
     {
       "operation": "group_step",
-      "seconds": 0.928370970999822,
+      "seconds": 0.8734198290003405,
       "units": 900000,
       "verified_result": 3000
     }

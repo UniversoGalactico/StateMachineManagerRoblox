@@ -133,8 +133,8 @@ local function compile(config: any, direct: boolean): (States, string)
 			Transitions=edges, Events=events, TransitionNames=keys(edges), EventNames=keys(events),
 			After=after, Update=definition.Update, Enter=definition.Enter, Exit=definition.Exit,
 		}
-		table.freeze(state)
 		states[stateName] = state
+		table.freeze(state)
 	end
 	assert(nameValid(config.Initial) and states[config.Initial], "INVALID_INITIAL_STATE")
 	for _, state in pairs(states) do
