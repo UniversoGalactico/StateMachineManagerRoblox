@@ -1,30 +1,45 @@
-StateMachineManager
-A high-performance state engine for Roblox NPCs. Built to handle 100+ concurrent entities with zero memory leaks and atomic state transitions.
+# StateMachineManager for Roblox
 
-API Reference:
+A small finite-state machine for NPCs, rounds, menus, abilities and other game logic. **3.0.0-rc.1** is a release candidate. MIT; no dependencies or automatic loops.
 
-StateMachineManager.Register(model: Instance, states: table, initialState: string, data: table)
-StateMachineManager.SetState(model: Instance, stateName: string)
-StateMachineManager.Unregister(model: Instance)
+## Install
 
-Technical Specs:
+Paste [StateMachineManagerRoblox.lua](StateMachineManagerRoblox.lua) into a ModuleScript named StateMachine.
 
-Concurrency: Per-NPC mutex prevents race conditions during state transitions.
+```lua
+local StateMachine = require(script.Parent.StateMachine)
+local machine = StateMachine.new({
+    Initial = "Idle",
+    States = {
+        Idle = {Transitions = {Chase = true}},
+        Chase = {Transitions = {Idle = true, Attack = true}},
+        Attack = {Transitions = {Idle = true}},
+    },
+    OnChanged = function(context, old, new)
+        print(old, "->", new)
+    end,
+})
 
-Queuing: Pending state requests are automatically queued when the NPC is busy.
+assert(machine:Transition("Chase"))
+print(machine:GetState()) -- Chase
+machine:Destroy()
+```
 
-Rate Limiting: Protects CPU cycles by throttling state-change frequency.
+Only listed transitions are allowed. Replace `true` with a synchronous guard function returning exactly true to permit the transition. Optional state Update functions run only when you call Step(dt). They may return a target state or nil.
 
-Lifecycle: Auto-cleanup via Instance.Destroying hook + heartbeat-only processing (no orphan loops).
+| API | Meaning |
+| --- | --- |
+| new(config) | independent machine |
+| GetState() | current state |
+| Transition(target, payload?) | guarded transition |
+| CanTransition(target) | graph-only check, not guard evaluation |
+| Token() / IsCurrent(token) | opaque state-generation identity |
+| TransitionIfCurrent(token, target, payload?) | reject stale async work |
+| Step(dt) | optional update |
+| Destroy() | invalidate machine and release references |
 
-Quick Start:
+See [API and contracts](docs/API.md), [NPC example](examples/NPC.server.lua), [tests](tests/), and [AI guide](AGENTS.md).
 
+**Breaking change:** the old NPC registry API is not retained. The [legacy module](https://github.com/UniversoGalactico/StateMachineManagerRoblox/blob/32542f3db8aae455f7d8c0b66d656b436fc7ba5c/StateMachineManagerRoblox.lua) remains available in history. Applications own their update connections and NPC cleanup.
 
-
-local states = {
-    idle = { onEnter = function() ... end },
-    attack = { onEnter = function() ... end }
-}
-
-StateMachineManager.Register(myNPC, states, "idle", {Target = nil})
-StateMachineManager.SetState(myNPC, "attack")
+Callbacks must not yield or reenter mutation methods. Callback errors are observable; a failed post-commit notification does not roll back the transition. No automatic networking, rate limiting or performance certification.
